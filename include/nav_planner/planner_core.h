@@ -13,6 +13,12 @@
 #include <nav_core/base_global_planner.h>
 #include <nav_msgs/GetPlan.h>
 #include <dynamic_reconfigure/server.h>
+//潜力计算器
+#include <nav_planner/potential.h>
+//扩展器
+#include <nav_planner/expander.h>
+//追溯
+#include <nav_planner/traceback.h>
 
 
 

@@ -16,12 +16,12 @@ public:
                 setSize(nx,ny);
             }
     
-    //虚函数
-    virtual bool calculatePotentials(unsigned char* costs,
-                                    double start_x, double start_y,
-                                    double end_x, double end_y,
-                                    int cycles,
-                                    float* potential) = 0;
+    //纯虚函数
+    virtual bool Potential(unsigned char* costs,
+                            double start_x, double start_y,
+                            double end_x, double end_y,
+                            int cycles,
+                            float* potential) = 0;
 
     //设置或者重置地图的大小  , x,y
     virtual void setSize(int nx,int ny){
