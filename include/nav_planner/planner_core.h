@@ -19,7 +19,23 @@
 #include <nav_planner/expander.h>
 //追溯
 #include <nav_planner/traceback.h>
+//将GlobalPlanner注册为BaseGlobalPlanner插件
 
+namespace nav_planner
+{
+
+class Expander;
+class GridPath;
+
+
+
+
+
+
+
+
+
+}
 
 
 
