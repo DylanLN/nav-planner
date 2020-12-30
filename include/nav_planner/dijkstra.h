@@ -13,6 +13,7 @@
 #include <nav_planner/planner_core.h>
 #include <nav_planner/planner_core.h>
 
+//在current buffer 添加当前点
 #define push_cur(n) \
 {\
     if(n>=0 && n<ns_ && !pending_[n] && getCost(costs, n) < lethal_cost_ && currentEnd_ < PRIORITYBUFSIZE)\
@@ -21,7 +22,7 @@
         pending_[n] = true;\
     }\
 }
-
+//在next buffer 添加当前点
 #define push_next(n) \
 {\
     if (n>=0 && n < ns_ && !pending_[n] && getCost(costs, n) < lethal_cost_ && nextEnd_ < PRIORITYBUFSIZE)\
@@ -30,7 +31,8 @@
         pending_[n] = true;\
     }\
 }
-
+//在end buffer添加当前点
+//也就是把当前点压入到 end队列里面
 #define push_over(n) \
 {\
     if (n>=0 && n < ns_ && !pending_[n] && getCost(costs, n) < lethal_cost_ && overEnd < PRIORITYBUFSIZE)\
