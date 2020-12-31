@@ -6,6 +6,7 @@
 
 namespace nav_planner
 {
+//枚举
 enum OrientationMode { NONE, FORWARD, INTERPOLATE, FORWARDTHENINTERPOLATE, BACKWARD, LEFTWARD, RIGHTWARD };
 
 class OrientationFilter
@@ -34,7 +35,7 @@ protected:
     OrientationMode omode_;
     //窗口大小
     int window_size_;
-}
+};
 
 
 }
