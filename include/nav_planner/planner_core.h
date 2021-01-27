@@ -38,7 +38,7 @@ public:
     //构造函数
     GlobalPlanner();
     GlobalPlanner(std::string name, costmap_2d::Costmap2D* costmap, std::string frame_id);
-
+    //析构函数
     ~GlobalPlanner();
 
 
@@ -128,14 +128,6 @@ private:
 
 };
 
-
-
-
-
-
-
 }
-
-
 
 #endif
