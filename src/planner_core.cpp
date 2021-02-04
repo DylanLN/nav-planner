@@ -13,6 +13,11 @@
 #include <nav_planner/planner_core.h>
 #include <nav_planner/potential.h>
 #include <nav_planner/traceback.h>
+/*
+map坐标系，单位为m，及真实的tf或amcl获得的未知
+world坐标系，即为栅格坐标系
+
+*/
 
 PLUGINLIB_EXPORT_CLASS(nav_planner::GlobalPlanner, nav_core::BaseGlobalPlanner)
 
@@ -201,9 +206,122 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start,
                              double tolerance,
                              std::vector<geometry_msgs::PoseStamped>& plan)
 {
-    
+    //boost区域锁，用来对线程同步进行资源保护的
+    boost::mutex::scoped_lock lock(mutex_);
 
+    if (!initialized_)
+    {
+        ROS_ERROR("Uninitialized")；
+        return false;
+    }
+    //清空路径vector
+    plan.clear();
+
+    ros::NodeHandle n;
+    std::string global_frame = frame_id;
+
+    //判断起始点及目标点是否在该环境下
+    if (tf::resolve(tf_prefix_, goal.header.frame_id) != tf::resolve(tf_prefix_, global_frame)))
+    {
+        ROS_ERROR(
+                "The goal pose passed to this planner must be in the %s frame.  It is instead in the %s frame.", tf::resolve(tf_prefix_, global_frame).c_str(), tf::resolve(tf_prefix_, goal.header.frame_id).c_str());
+        return false;
+    }
+    
+    //获取起始点的世界坐标系坐标
+    double wx = start.pose.position.x;
+    double wy = start.pose.position.y;
+
+    unsigned int start_x_i, start_y_i, goal_x_i, goal_y_i;
+    double start_x, start_y, goal_x, goal_y;
+    
+    //将起始点的世界坐标系坐标转化为 map坐标系坐标
+    if (!costmap_->worldToMap(wx, wy, start_x_i, start_y_i))
+    {
+        ROS_WARN(
+                "The robot's start position is off the global costmap. Planning will always fail, are you sure the robot has been properly localized?");
+        return false;
+    }
+    //判断一下是否还用老旧的navfn计算方式      no
+    worldToMap(wx, wy, start_x, start_y);
+
+    //获取目标点world坐标
+    wx = goal.pose.position.x;
+    wy = goal.pose.position.y;
+
+    if (!costmap_->worldToMap(wx, wy, goal_x_i, goal_y_i))
+    {
+        ROS_WARN_THROTTLE(1.0,
+                "The goal sent to the global planner is off the global costmap. Planning will always fail to this goal.");
+        return false;
+    }
+
+    tf::Stamped<tf::Pose> start_pose;
+    tf::poseStampedMsgToTF(start, start_pose);
+
+    //清空起始点的代价值，因为不知道其是否为障碍
+    clearRobotCell(start_pose, start_x_i, start_y_i);
+
+    //获取代价地图的长宽
+    int nx = costmap_->getSizeInCellsX();
+    int ny = costmap_->getSizeInCellsY();
+
+    //分配空间，确保使用基础数组的大小
+    //搜索算法
+    p_calc_->setSize(nx, ny);
+    //搜索算法设置长宽
+    planner_->setSize(nx, ny);
+    //路径回溯
+    path_marker_->setSize(nx, ny);
+    
+    //扩展的点
+    potential_array_ = new float[nx * ny];
+
+    //路径搜索
+    bool found_legal = planner_->calcuatePotentials(costmap_->getCharMap(),
+                                                    start_x,
+                                                    start_y,
+                                                    goal_x,
+                                                    goal_y,
+                                                    nx * ny * 2,
+                                                    potential_array_);
+    //判断是否用老式的计算方式  no
+    planner_->clearEndpoint(costmap_->getCharMap(),
+                            potential_array_,
+                            goal_x_i,
+                            goal_y_i);
+    //是否发布可行性点到话题   no
+    //publishPotential(potential_array_);
+
+    //判断搜索算法是否找到了目标点
+    if (found_legal)
+    {
+        //从potential可行性点里面找出来路径
+        if(getPlanFromPotential(start_x, start_y, goal_x, goal_y, goal, plan)){
+            //确保目标点的时间戳与其他的相同
+            geometry_msgs::PoseStamped goal_copy = goal;
+            goal_copy.header.stamp = ros::Time::now();
+            plan.push_back(goal_copy);
+        }else{
+            ROS_ERROR("Failed to get a plan from potential");
+        }
+    }else{
+        ROS_ERROR("failed to get a plan");
+    }
+
+    //给路径加方向
+    orientation_filter_->processPath(start, plan);
+    //发布可视化路径   no
+    //publishPlan(plan);
+    
+    delete potential_array_;
+    return !plan.empty();
 }
+//提取路径
+
+//发布可视化路径
+
+//发布可行性点
 
 }
 
