@@ -55,21 +55,21 @@ public:
     
     //从给定的世界点开始计算地图的完整功能
     //计算潜力
-    bool computePotential(const geometry_msgs::Point& world_point);
-    //在已经计算出起点的可能性之后，将计划计算为目标（注意：您应该首先调用computePotential）
+    bool computePotentialCalculator(const geometry_msgs::Point& world_point);
+    //在已经计算出起点的可能性之后，将计划计算为目标（注意：您应该首先调用computePotentialCalculator）
     //从潜力中获取计划
     //估计是从潜力计算图中获取路径
-    bool getPlanFromPotential(double start_x, double start_y, double end_x, double end_y,
+    bool getPlanFromPotentialCalculator(double start_x, double start_y, double end_x, double end_y,
                                 const geometry_msgs::PoseStamped& goal
                                 std::vector<geometry_msgs::PoseStamped>& paln);
-    //获取世界上给定点的潜力或导航成本（注意：您应该先调用“computePotential-计算潜力”）
+    //获取世界上给定点的潜力或导航成本（注意：您应该先调用“computePotentialCalculator-计算潜力”）
     //应该是获取改点的潜力
-    double getPointPotential(const geometry_msgs::Point& world_point);
+    double getPointPotentialCalculator(const geometry_msgs::Point& world_point);
 
-    //在世界上的给定点检查有效的潜在值（注意：您应该先调用computePotential）
-    bool validPointPotential(const geometry_msgs::Point& world_point);
+    //在世界上的给定点检查有效的潜在值（注意：您应该先调用computePotentialCalculator）
+    bool validPointPotentialCalculator(const geometry_msgs::Point& world_point);
     //tolerance-公差
-    bool validPointPotential(const geometry_msgs::Point& world_point, double tolerance);
+    bool validPointPotentialCalculator(const geometry_msgs::Point& world_point, double tolerance);
 
     //发布路径
     void publishPlan(const std::vector<geometry_msgs::PoseStamped>& path);
@@ -97,7 +97,7 @@ private:
     //应该是清空栅格的代价值,或者潜力值
     void clearRobotCell(const tf::Stamped<tf::Pose>& global_pose, unsigned int mx, unsigned int my);
     //
-    void publishPotential(float* potential);
+    void publishPotentialCalculator(float* potential);
 
     double planner_window_x_, planner_window_y_, default_tolerance;
     std::string tf_prefix_;

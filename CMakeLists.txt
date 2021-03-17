@@ -198,7 +198,7 @@ include_directories(
 
 # add_library(planner_core
 #   include/nav_planner/expander.h
-#   include/nav_planner/potential.h
+#   include/nav_planner/potential_calculator.h
 #   include/nav_planner/traceback.h
 #   include/nav_planner/planner_core.h
 # )

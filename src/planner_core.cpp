@@ -96,7 +96,7 @@ void GlobalPlanner::initialize(std::string name, costmap_2d::Costmap2D* costmap,
         convert_offset_ = 0.5;
 
         //是否使用二次近似函数    no
-        p_calc_ = new Potential(cx, cy);
+        p_calc_ = new PotentialCalculator(cx, cy);
 
         //使用地杰斯特拉算法 yes
         DijkstraExpansion* de = new DijkstraExpansion(p_calc_, cx, cy);
@@ -278,7 +278,7 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start,
     potential_array_ = new float[nx * ny];
 
     //路径搜索
-    bool found_legal = planner_->calcuatePotentials(costmap_->getCharMap(),
+    bool found_legal = planner_->calcuatePotentialCalculators(costmap_->getCharMap(),
                                                     start_x,
                                                     start_y,
                                                     goal_x,
@@ -291,13 +291,13 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start,
                             goal_x_i,
                             goal_y_i);
     //是否发布可行性点到话题   no
-    //publishPotential(potential_array_);
+    //publishPotentialCalculator(potential_array_);
 
     //判断搜索算法是否找到了目标点
     if (found_legal)
     {
         //从potential可行性点里面找出来路径
-        if(getPlanFromPotential(start_x, start_y, goal_x, goal_y, goal, plan)){
+        if(getPlanFromPotentialCalculator(start_x, start_y, goal_x, goal_y, goal, plan)){
             //确保目标点的时间戳与其他的相同
             geometry_msgs::PoseStamped goal_copy = goal;
             goal_copy.header.stamp = ros::Time::now();
@@ -318,6 +318,56 @@ bool GlobalPlanner::makePlan(const geometry_msgs::PoseStamped& start,
     return !plan.empty();
 }
 //提取路径
+bool GlobalPlanner::getPlanFromPotentialCalculator(double start_x, double start_y,
+                                        double goal_x, double goal_y,
+                                        const geometry_msgs::PoseStamped& goal,
+                                        std::vector<geometry_msgs::PoseStamped>& plan)
+{
+    if (!initialized_)
+    {
+        ROS_ERROR("This planner has not been initialized_.");
+        return false;
+    }
+    
+    std::string global_frame = frame_id_;
+
+    //清空路径
+    plan.clear();
+    std::vector<std::pair<float,float>> path;
+
+    //调用getPath
+    if (!path_marker_->getPath(potential_array_, start_x, start_y, goal_x, goal_y, path))
+    {
+        ROS_ERROR("NO PATH!");
+        return false;
+    }
+
+    //将path赋值给ros标准消息
+    ros::Time plan_time = ros::Time::now();
+    for (int i = path.size() - 1; i >= 0; i--)
+    {
+        std::pair<float, float> point = path[i];
+        double world_x, world_y;
+
+        //将提取的路径转换为世界坐标系
+        mapToWorld(point.first, point.second, world_x, world_y);
+
+        //给路径赋值
+        geometry_msgs::PoseStamped pose;
+        pose.header.stamp = plan_time;
+        pose.header.frame_id = global_frame;
+        pose.pose.position.x = world_x;
+        pose.pose.position.y = world_y;
+        pose.pose.position.z = 0.0;
+        //在后面会赋值，感觉没必要
+        // pose.pose.orientation.x = 0.0;
+        // pose.pose.orientation.y = 0.0;
+        // pose.pose.orientation.z = 0.0;
+        // pose.pose.orientation.w = 1.0;        
+        plan.push_back(pose);
+    }
+    return !plan.empty();
+}
 
 //发布可视化路径
 

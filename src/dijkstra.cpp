@@ -8,7 +8,7 @@
 namespace nav_planner{
 
 //构造函数
-DijkstraExpansion::DijkstraExpansion(Potential* p_calc, int nx, int ny) :
+DijkstraExpansion::DijkstraExpansion(PotentialCalculator* p_calc, int nx, int ny) :
                     Expander(p_calc, nx, ny), pending_(NULL), precise_(false){
                         //初始化优先级 buf 长度为PRIORITYBUFSIZE = 10000;
                         buffer1_ = new int[PRIORITYBUFSIZE];
@@ -43,7 +43,7 @@ void DijkstraExpansion::setSize(int xs, int ys){
 //迪杰斯特拉主要的启发函数
 //广度优先
 //
-bool DijkstraExpansion::Potential(unsigned char* costs, double start_x, double start_y, double end_x,
+bool DijkstraExpansion::calculatePotentials(unsigned char* costs, double start_x, double start_y, double end_x,
                                     double end_y, int cycles, float* potential){
 
     //设置已经遍历过的栅格为0
@@ -74,7 +74,7 @@ bool DijkstraExpansion::Potential(unsigned char* costs, double start_x, double s
         double dx = start_x - (int)start_x;
         double dy = start_y - (int)start_y;
 
-        //向下取整 //保留小数点后两位
+        //向下取整 //四舍五入保留小数点后两位
         dx = floorf(dx * 100 + 0.5) / 100;
         dy = floorf(dy * 100 + 0.5) / 100;
 
@@ -107,7 +107,7 @@ bool DijkstraExpansion::Potential(unsigned char* costs, double start_x, double s
     
     //最大优先级块大小
     int nwv = 0;
-    //放入优先块的信元数量(放进去的栅格的数量)
+    //放入优先块的栅格数量(放进去的栅格的数量)
     int nc = 0;
 
     //设置开始单元(分明是关闭好吗)//就是目标点
@@ -192,7 +192,7 @@ inline void DijkstraExpansion::updateCell(unsigned char* costs, float* potential
     if (c >= lethal_cost_)
         return;
     //pot  =  前后左右最小的potential + 当前的costs 
-    float pot = p_calc_->Potential(potential, c, n);
+    float pot = p_calc_->calculatePotential(potential, c, n);
 
     //现在将受影响的邻居添加到优先级块
 
@@ -204,14 +204,13 @@ inline void DijkstraExpansion::updateCell(unsigned char* costs, float* potential
         float ue = INVSQRT2 * (float)getCost(costs, n-nx_);
         float de = INVSQRT2 * (float)getCost(costs, n+nx_);
 
-        //potential -= 1;  不知道为啥自减一
         potential[n] =pot;
 
         //低成本缓冲块,暂时不清楚干啥的
         //如果当前 pot小于阈值
         if (pot < threshold_)
         {
-            //如果当前点的潜力  大于 潜力-1 + cost*根号二/2
+            //如果当前点的潜力  大于 扩展点累计潜力+当前扩展点代价
             //将其push到next的队列
             if (potential[n-1] > pot + le) push_next(n-1);
             if (potential[n+1] > pot + re) push_next(n+1);

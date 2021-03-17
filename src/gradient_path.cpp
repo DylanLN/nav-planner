@@ -9,7 +9,7 @@ namespace nav_planner
 {
 
 //构造函数
-GradientPath::GradientPath(Potential* p_calc) : Traceback(p_calc), pathStep(0.5){
+GradientPath::GradientPath(PotentialCalculator* p_calc) : Traceback(p_calc), pathStep(0.5){
     gradx_ = grady_ = NULL;
 }
 //析构函数
@@ -31,7 +31,6 @@ float GradientPath::gradCell(float* potential, int n)
 {
     if(gradx_[n] + grady_[n] > 0.0)
         return 1.0;
-    
 }
 
 

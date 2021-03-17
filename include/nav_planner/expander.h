@@ -11,13 +11,13 @@ class Expander
 {
 public:
     //构造函数
-    Expander(Potential* p_calc, int nx, int ny):
+    Expander(PotentialCalculator* p_calc, int nx, int ny):
             unknown_(true),lethal_cost_(253),neutral_cost_(50),factor_(3.0),p_calc_(p_calc){
                 setSize(nx,ny);
             }
     
     //纯虚函数
-    virtual bool Potential(unsigned char* costs,
+    virtual bool calculatePotentials(unsigned char* costs,
                             double start_x, double start_y,
                             double end_x, double end_y,
                             int cycles,
@@ -61,7 +61,7 @@ public:
                     continue;
                 //
                 float c = costs[n] + neutral_cost_;
-                float pot = p_calc_->Potential(potential, c, n);
+                float pot = p_calc_->PotentialCalculator(potential, c, n);
                 potenrial[n] = pot;
             }
             
@@ -81,7 +81,7 @@ protected:
     unsigned char neutral_cost_;    //中立/中性 代价
     int cells_visited_;             //已经遍历过的栅格
     float factor_;                  //因子,因素
-    Potential* p_calc_;             //计算器
+    PotentialCalculator* p_calc_;             //计算器
 
 private:
     /* data */

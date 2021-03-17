@@ -12,7 +12,7 @@ namespace nav_planner
 class GridPath : public Traceback
 {
 public:
-    GridPath(Potential* p_calc) : Traceback(p_calc){};
+    GridPath(PotentialCalculator* p_calc) : Traceback(p_calc){};
 
     //get出来路径
     bool getPath(float* potential, double start_x, double start_y, double end_x, double end_y,

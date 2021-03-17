@@ -48,11 +48,11 @@ namespace nav_planner
 class DijkstraExpansion : public Expander
 {
 public:
-    DijkstraExpansion(Potential* p_calc, int nx, int ny);
+    DijkstraExpansion(PotentialCalculator* p_calc, int nx, int ny);
     ~DijkstraExpansion();
 
     //启发函数
-    bool Potential(unsigned char* costs, double start_x, double start_y, double end_x, double end_y, int cycles,
+    bool calculatePotentials(unsigned char* costs, double start_x, double start_y, double end_x, double end_y, int cycles,
                     float* potential);
     //设置地图大小
     void setSize(int nx,int ny);
