@@ -20,7 +20,7 @@
 //追溯
 #include <nav_planner/traceback.h>
 //给路径加方向
-#include <lnglobal_planner/orientation_filter.h>
+#include <nav_planner/orientation_filter.h>
 
 
 namespace nav_planner
